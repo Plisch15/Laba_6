@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Фільтрація та сортування</title>
+<style>
+  body { font-family: sans-serif; }
+  .filters { margin-bottom: 20px; }
+  .item { border: 1px solid #ccc; margin: 5px; padding: 10px; }
+  .active-filters { margin-top: 10px; }
+  .active-filters span { background: #ddd; margin: 0 5px; padding: 3px 8px; border-radius: 5px; }
+</style>
+</head>
+<body>
+
+<div class="filters">
+  <input type="text" id="search" placeholder="Пошук...">
+  <select id="sortBy">
+    <option value="name">За назвою</option>
+    <option value="price">За ціною</option>
+  </select>
+  <select id="categoryFilter">
+    <option value="">Всі категорії</option>
+    <option value="electronics">Електроніка</option>
+    <option value="books">Книги</option>
+    <option value="clothes">Одяг</option>
+  </select>
+  <button id="resetFilters">Скинути фільтри</button>
+  <div class="active-filters"></div>
+</div>
+
+<div id="items-container"></div>
+
+<script>
+  class FilterSystem {
+    constructor(data) {
+      this.data = data;
+      this.filteredData = [...data];
+      this.searchInput = document.getElementById('search');
+      this.sortSelect = document.getElementById('sortBy');
+      this.categoryFilter = document.getElementById('categoryFilter');
+      this.itemsContainer = document.getElementById('items-container');
+      this.activeFiltersContainer = document.querySelector('.active-filters');
+
+      this.addEventListeners();
+      this.render();
+    }
+
+    addEventListeners() {
+      this.searchInput.addEventListener('input', () => this.applyFilters());
+      this.sortSelect.addEventListener('change', () => this.applyFilters());
+      this.categoryFilter.addEventListener('change', () => this.applyFilters());
+      document.getElementById('resetFilters').addEventListener('click', () => this.resetFilters());
+    }
+
+    applyFilters() {
+      const searchQuery = this.searchInput.value.toLowerCase();
+      const category = this.categoryFilter.value;
+
+      this.filteredData = this.data.filter(item => {
+        const matchesSearch = item.name.toLowerCase().includes(searchQuery);
+        const matchesCategory = category ? item.category === category : true;
+        return matchesSearch && matchesCategory;
+      });
+
+      this.sortData(this.sortSelect.value);
+      this.updateActiveFilters();
+      this.render();
+    }
+
+    sortData(criterion) {
+      if (criterion === 'name') {
+        this.filteredData.sort((a, b) => a.name.localeCompare(b.name));
+      } else if (criterion === 'price') {
+        this.filteredData.sort((a, b) => a.price - b.price);
+      }
+    }
+
+    updateActiveFilters() {
+      const filters = [];
+      if (this.searchInput.value) {
+        filters.push(`Пошук: "${this.searchInput.value}"`);
+      }
+      if (this.categoryFilter.value) {
+        filters.push(`Категорія: ${this.categoryFilter.options[this.categoryFilter.selectedIndex].text}`);
+      }
+      this.activeFiltersContainer.innerHTML = filters.length ? 'Активні фільтри: ' + filters.map(f => `<span>${f}</span>`).join('') : '';
+    }
+
+    resetFilters() {
+      this.searchInput.value = '';
+      this.categoryFilter.value = '';
+      this.sortSelect.value = 'name';
+      this.filteredData = [...this.data];
+      this.updateActiveFilters();
+      this.render();
+    }
+
+    render() {
+      this.itemsContainer.innerHTML = this.filteredData.map(item => `
+        <div class="item">
+          <strong>${item.name}</strong><br>
+          Категорія: ${item.category}<br>
+          Ціна: ${item.price} грн
+        </div>
+      `).join('');
+    }
+  }
+
+  // Дані для демонстрації
+ const sampleData = [
+  { name: 'Смартфон', category: 'electronics', price: 3000 },
+  { name: 'Книга "JavaScript"', category: 'books', price: 500 },
+  { name: 'Сорочка', category: 'clothes', price: 700 },
+  { name: 'Навушники', category: 'electronics', price: 800 },
+  { name: 'Книга "HTML/CSS"', category: 'books', price: 400 },
+  { name: 'Телевізор', category: 'electronics', price: 7000 },
+  { name: 'Джинси', category: 'clothes', price: 1200 },
+  { name: 'Рюкзак', category: 'clothes', price: 900 },
+  { name: 'Планшет', category: 'electronics', price: 4500 },
+  { name: 'Книга "Python"', category: 'books', price: 600 },
+];
+
+  // Ініціалізація системи
+  document.addEventListener('DOMContentLoaded', () => {
+    const filterSystem = new FilterSystem(sampleData);
+  });
+</script>
+
+</body>
+</html>
